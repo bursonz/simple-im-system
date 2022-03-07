@@ -12,13 +12,15 @@ type Server struct {
 
 	//在线用户的列表
 	OnlineMap map[string]*User
-	mapLock   sync.RWMutex
+
+	// OnlineMap 锁
+	mapLock sync.RWMutex
 
 	//消息广播的Channel
 	Message chan string
 }
 
-//创建一个Server的接口
+// NewServer 创建一个Server的接口
 func NewServer(ip string, port int) *Server {
 	server := &Server{
 		Ip:        ip,
@@ -29,7 +31,7 @@ func NewServer(ip string, port int) *Server {
 	return server
 }
 
-//监听Message广播消息channel的goroutine，一旦有消息就发送给全部的在线User
+// ListenMessager 监听Message广播消息channel的goroutine，一旦有消息就发送给全部的在线User
 func (s *Server) ListenMessager() {
 	for {
 		msg := <-s.Message
@@ -44,7 +46,7 @@ func (s *Server) ListenMessager() {
 	}
 }
 
-//广播消息的方法
+// BroadCast 广播消息的方法
 func (s *Server) BroadCast(user *User, msg string) {
 	sendMsg := "[" + user.Addr + "]" + user.Name + ":" + msg
 	s.Message <- sendMsg
@@ -67,7 +69,7 @@ func (s *Server) Handler(conn net.Conn) {
 	//当前handler阻塞
 }
 
-//启动服务器的接口
+// Start 启动服务器的接口
 func (s *Server) Start() {
 	// socket listen
 	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", s.Ip, s.Port))
@@ -76,7 +78,7 @@ func (s *Server) Start() {
 		return
 	}
 
-	//close Listen socker
+	//close Listen socket
 	defer listener.Close()
 
 	//启动监听Message的goroutine

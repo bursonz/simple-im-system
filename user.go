@@ -9,7 +9,7 @@ type User struct {
 	conn net.Conn
 }
 
-//创建一个用户的API
+// NewUser 创建一个用户的API
 func NewUser(conn net.Conn) *User {
 	userAddr := conn.RemoteAddr().String()
 
@@ -20,13 +20,13 @@ func NewUser(conn net.Conn) *User {
 		conn: conn,
 	}
 
-	//启动监听当前user channel消息的goroute
+	//启动监听当前user channel消息的goroutine
 	go user.ListenMessage()
 
 	return user
 }
 
-//监听当前User channel的方法，一旦有消息，就直接发送给对端客户端
+// ListenMessage 监听当前User channel的方法，一旦有消息，就直接发送给对端客户端
 func (u *User) ListenMessage() {
 	for {
 		msg := <-u.Ch
