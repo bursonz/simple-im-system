@@ -77,6 +77,7 @@ func (s *Server) Handler(conn net.Conn) {
 
 			if err != nil && err != io.EOF {
 				fmt.Println("Conn Read err:", err)
+				return
 			}
 
 			//提取用户的消息（去除'\n'）
