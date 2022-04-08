@@ -3,7 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"net"
+	"os"
 )
 
 type Client struct {
@@ -36,6 +38,19 @@ func NewClient(serverIp string, serverPort int) *Client {
 
 }
 
+//处理server回应的消息，直接显示到输出即可
+func (c *Client) DealResponse() {
+	//一旦c.conn有数据，就直接copy到stdout标准输出上，永久阻塞监听
+	io.Copy(os.Stdout, c.conn)
+
+	//等效于以下代码
+	//for {
+	//	var buf []byte
+	//	c.conn.Read(buf)
+	//	fmt.Println(buf)
+	//}
+}
+
 func (c *Client) menu() bool {
 	var flag int
 	fmt.Println("1.公聊模式")
@@ -51,6 +66,19 @@ func (c *Client) menu() bool {
 		fmt.Println(">>>>>> 请输入合法范围的数据...")
 		return false
 	}
+}
+
+func (c *Client) UpdateName() bool {
+	fmt.Println(">>>>>>请输入用户名：")
+	fmt.Scanln(&c.Name)
+	sendMsg := "rename|" + c.Name + "\n"
+	_, err := c.conn.Write([]byte(sendMsg))
+	if err != nil {
+		fmt.Println("conn.Write err: ", err)
+		return false
+	}
+	return true
+
 }
 
 func (c *Client) Run() {
@@ -96,6 +124,9 @@ func main() {
 		fmt.Println(">>>>>> 服务器连接失败...")
 		return
 	}
+
+	//单独开启一个goroutine去处理server的回执消息
+	go client.DealResponse()
 
 	fmt.Println(">>>>>> 服务器连接成功!!!")
 
